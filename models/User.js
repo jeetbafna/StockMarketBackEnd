@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  p_name{
+  p_name:{
     type:String
   },
   bank_acc: [ {acc_num: {
