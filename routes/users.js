@@ -15,11 +15,11 @@ router.get('/register1', forwardAuthenticated, (req, res) => res.render('registe
 
 // Register
 router.post('/register1', (req, res) => {
-  const { name, email, password, password2 } = req.body;
+  const { name, email, password, password2,physical_address1,physical_address2,physical_address3,p_name } = req.body;
   console.log(name);
   let errors = [];
 
-  if (!name || !email || !password || !password2) {
+  if (!name || !email || !password || !password2 || !physical_address1 || !physical_address2 || !physical_address3 || !p_name) {
     errors.push({ msg: 'Please enter all fields' });
   }
 
@@ -42,7 +42,11 @@ router.post('/register1', (req, res) => {
         const newUser = new User({
           name,
           email,
-          password
+          password,
+          physical_address1,
+          physical_address2,
+          physical_address3,
+          p_name
         });
 
         bcrypt.genSalt(10, (err, salt) => {
@@ -87,6 +91,40 @@ router.post('/login1', (req, res, next) => {
   //   failureRedirect: '/users/login',
   //   failureFlash: true
   // })(req, res, next);
+});
+
+router.post('/forgot_password', (req, res, next) => {
+  const { email,p_name} = req.body;
+  User.findOne(
+    {email: email},
+    function(err,model){
+      if(err){
+        res.send({user:false,err:err});
+      } else{
+        console.log(model);
+        res.send({user:true, model:model});
+      }
+    });
+});
+router.post('/reset_password', (req, res, next) => {
+  var { email,password} = req.body;
+
+bcrypt.genSalt(10, (err, salt) => {
+          bcrypt.hash(password, salt, (err, hash) => {
+            if (err) throw err;
+            password = hash;
+            User.findOneAndUpdate(
+              {email: email},{$set:{password:hash}},
+              function(err,model){
+                if(err){
+                res.send({user:false,err:err});
+                } else{
+                res.send({user:true, model:model});
+                }
+              });
+          });
+        });
+
 });
 
 // Logout
