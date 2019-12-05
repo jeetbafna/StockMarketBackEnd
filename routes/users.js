@@ -70,20 +70,17 @@ router.post('/register1', (req, res) => {
 
 router.post('/login1', (req, res, next) => {
   passport.authenticate('local', function(err, user, info) {
-    console.log(err);
     if (err) { 
-      console.log(err);
       return res.send({login:false, error:err}); 
     }
     if (!user) { 
-      console.log(err);
       return res.send({login:false}); 
     }
     req.logIn(user, function(err) {
       if (err) { 
-        console.log(err);
         return res.send({login:false, error:err});
       }
+      console.log(user);
       return res.send({login:true,user:user});
     });
   })(req, res, next);
@@ -348,33 +345,51 @@ router.post('/reccsellstock1', (req, res, next) => {
 router.post('/buyreccstock1', (req, res, next) => {
   const { id,ticker_symbol, stock_name, stock_qty, purchase_price, credit,hour,minutes} = req.body;
   var purchase_date= new Date(Date.now());
-  console.log(minutes);
+  var schedule_time = hour+minutes;
   const job = new CronJob(minutes+' '+hour+' * * *', function(){
       User.findOneAndUpdate(
         {_id:id, 'stock.ticker_symbol': ticker_symbol},
-        {$inc: {'stock.$.stock_qty': stock_qty},$set: {'credit':credit}},
+        {$inc: {'stock.$.stock_qty': stock_qty},
+        $set: {'credit':credit},
+        $push:{'schedule':{stock_name:stock_name,stock_qty:stock_qty,purchase_price:purchase_price,schedule_time:schedule_time}}},
         {new:true}, function(err,model){
           if(!model){
              User.findOneAndUpdate(
               {_id: id},
-              {$push:{"stock":{ticker_symbol: ticker_symbol, stock_name:stock_name, stock_qty: stock_qty, purchase_price:purchase_price, purchase_date:purchase_date}},$set:{credit:credit}},
+              {$push:{"stock":{ticker_symbol: ticker_symbol, stock_name:stock_name, stock_qty: stock_qty, purchase_price:purchase_price, purchase_date:purchase_date},'schedule':{stock_name:stock_name,stock_qty:stock_qty,purchase_price:purchase_price,schedule_time:schedule_time}},
+              $set:{credit:credit}},
               {upsert:true,new:true},
               function(err,model){
                 if(err){
                   console.log(err);
-                  res.send({update:false, err:err});
+                  res.send({update:false});
                 } else{
                     console.log(model);
-                    res.send({update:true, model:model});
+                    res.send({model:model});
                 }
                 }); 
           } else{
             console.log("here in else of first update");
-              res.send({update:true, model:model});
+              res.send({model:model});
           }
         });
     });
     job.start();
 });
+
+router.post('/find', (req, res, next) => {
+  const { email} = req.body;
+    User.findOne(
+    {email: email},
+    function(err,model){
+      if(err){
+        res.send({update:false});
+      } else{
+        console.log(model);
+        res.send({update:true, model:model});
+      }
+    });
+});
+
 
 module.exports = router;

@@ -26,6 +26,9 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  p_name{
+    type:String
+  },
   bank_acc: [ {acc_num: {
     type: Number,
     required: true
@@ -33,6 +36,19 @@ const UserSchema = new mongoose.Schema({
   routing_num: {
     type: Number,
     required: true
+  }}], 
+  schedule: [ {schedule_time: {
+    type: String,
+    required: true
+  }, 
+  stock_name: {
+    type: String
+  },
+  stock_qty: {
+    type: Number
+  },
+  purchase_price: {
+    type: Number
   }}],
 
   stock: [ { ticker_symbol: {
